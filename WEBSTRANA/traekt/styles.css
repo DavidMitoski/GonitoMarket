@@ -1,0 +1,88 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #fafafa;
+    color: #333;
+}
+header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 20px;
+}
+header img {
+    max-width: 200px;
+    height: auto;
+    margin-bottom: 10px;
+}
+header h1 {
+    font-size: 32px;
+    margin: 0;
+}
+input[type="text"] {
+    padding: 8px;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 15px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.table-container {
+    overflow-x: auto;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 600px;
+}
+th, td {
+    border: 1px solid #eee;
+    padding: 10px;
+    text-align: left;
+    white-space: nowrap;
+}
+th {
+    background-color: #f0f0f0;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+tr:nth-child(even) {
+    background-color: #fcfcfc;
+}
+#lastUpdated {
+    font-weight: bold;
+    color: green;
+    margin-top: 10px;
+}
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.pagination button {
+    background-color: #f0f0f0;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s ease;
+}
+.pagination button:hover {
+    background-color: #d0d0d0;
+}
+.pagination button.active {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}

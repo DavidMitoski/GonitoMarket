@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Гонито Маркет - Производи</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <img src="logo1.png" alt="Гонито Маркет Logo">
+  <h1>Траект 2024 - Ценовник на производи</h1>
+</header>
+
+<p id="lastUpdated">Последно ажурирање на производите е: ...</p>
+<input type="text" id="searchInput" placeholder="Пребарај шифра/назив на производ">
+
+<!-- Embed Google Sheets here -->
+
+<div class="table-container">
+  <table id="productsTable">
+    <thead><tr id="headerRow"></tr></thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+<div class="pagination" id="pagination"></div>
+
+<script>
+  const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQprkq1j0w1mLidTUjuLY6Tx5Y1ZCqHmkaoubatzjRlqU-28Eta0E-JduWjwIOW8Q/pub?output=csv';
+
+  const itemsPerPage = 20;
+  let allData = [];
+  let filteredData = [];
+  let currentPage = 1;
+
+  function updateLastUpdatedTime() {
+    const now = new Date();
+
+    const day = now.getDate().toString().padStart(2, '0');
+    const month = (now.getMonth() + 1).toString().padStart(2, '0'); // +1 бидејќи месеците одат од 0 до 11
+    const year = now.getFullYear();
+
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+
+    const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
+
+    document.getElementById('lastUpdated').textContent =
+            `Последно ажурирање на производите е: ${formattedDate}`;
+  }
+
+
+
+
+  async function loadAndParseCSV() {
+    const res = await fetch(CSV_URL);
+    const text = await res.text();
+    const parsed = Papa.parse(text, {
+      header: true,
+      skipEmptyLines: true
+    });
+    return parsed.data;
+  }
+
+  function renderTablePage(data, page) {
+    const tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = '';
+
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageItems = data.slice(start, end);
+
+    pageItems.forEach(row => {
+      const tr = document.createElement('tr');
+      Object.values(row).forEach(cell => {
+        const td = document.createElement('td');
+        td.textContent = cell;
+        tr.appendChild(td);
+      });
+      tableBody.appendChild(tr);
+    });
+  }
+
+  function renderHeader(data) {
+    const headerRow = document.getElementById('headerRow');
+    headerRow.innerHTML = '';
+    Object.keys(data[0]).forEach(col => {
+      const th = document.createElement('th');
+      th.textContent = col;
+      headerRow.appendChild(th);
+    });
+  }
+
+  function renderPaginationControls(dataLength, currentPage) {
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+
+    const pageCount = Math.ceil(dataLength / itemsPerPage);
+    const createBtn = (text, page, disabled = false, active = false) => {
+      const btn = document.createElement('button');
+      btn.textContent = text;
+      if (active) btn.classList.add('active');
+      if (disabled) btn.disabled = true;
+      btn.addEventListener('click', () => {
+        currentPage = page;
+        renderTablePage(filteredData, currentPage);
+        renderPaginationControls(filteredData.length, currentPage);
+      });
+      return btn;
+    };
+
+    pagination.appendChild(createBtn('«', 1, currentPage === 1));
+    pagination.appendChild(createBtn('‹', currentPage - 1, currentPage === 1));
+
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = startPage + maxPagesToShow - 1;
+
+    if (endPage > pageCount) {
+      endPage = pageCount;
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pagination.appendChild(createBtn(i, i, false, i === currentPage));
+    }
+
+    pagination.appendChild(createBtn('›', currentPage + 1, currentPage === pageCount));
+    pagination.appendChild(createBtn('»', pageCount, currentPage === pageCount));
+  }
+
+  function filterTable(query) {
+    const q = query.toLowerCase();
+    filteredData = allData.filter(row =>
+            Object.values(row).some(val =>
+                    (val + '').toLowerCase().includes(q)
+            )
+    );
+    currentPage = 1;
+    renderTablePage(filteredData, currentPage);
+    renderPaginationControls(filteredData.length, currentPage);
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    allData = await loadAndParseCSV();
+    filteredData = allData;
+    renderHeader(allData);
+    renderTablePage(filteredData, currentPage);
+    renderPaginationControls(filteredData.length, currentPage);
+    updateLastUpdatedTime();
+    document.getElementById('searchInput').addEventListener('input', e =>
+            filterTable(e.target.value)
+    );
+  });
+</script>
+</body>
+</html>
